@@ -7,44 +7,64 @@ import os
 
 app = Flask(__name__)
 
-# -------- LOAD MODEL (LOCAL ONLY) --------
+# -------- LOAD MODEL (LOCAL VERSION) --------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# We only load from the local folder now
+# We load the files directly from your project folder now
 try:
     vector = pickle.load(open(os.path.join(BASE_DIR, "vectorizer.pkl"), 'rb'))
     model = pickle.load(open(os.path.join(BASE_DIR, "phishing.pkl"), 'rb'))
-    print("✅ Models loaded successfully from local storage!")
-except Exception as e:
-    print(f"❌ ERROR: Could not load models. {e}")
+except FileNotFoundError:
+    print("ERROR: Model files not found! Make sure phishing.pkl and vectorizer.pkl are in the main folder.")
 
 # -------- DATABASE INIT --------
 def init_db():
     conn = sqlite3.connect("history.db")
     c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS history (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, result TEXT)")
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            url TEXT,
+            result TEXT
+        )
+    """)
     conn.commit()
     conn.close()
 
 init_db()
 
-# -------- LOGIC --------
+# -------- YOUR ORIGINAL LOGIC (PRESERVED) --------
 def rule_based_check(url):
     url = url.lower()
     score = 0
     if '@' in url: score += 4
     if len(url) > 70: score += 2
     if url.startswith("http://"): score += 2
-    keywords = ["login", "verify", "update", "bank", "secure", "account"]
+    if re.match(r'\d+\.\d+\.\d+\.\d+', url): score += 4
+    keywords = ["login", "verify", "update", "bank", "secure", "account", "signin", "confirm"]
     if any(word in url for word in keywords): score += 3
+    digits = sum(c.isdigit() for c in url)
+    if digits > 5: score += 2
+    if url.count('-') >= 1: score += 2
+    if url.endswith(('.tk', '.xyz', '.info', '.ru', '.cn')): score += 3
+    if '%' in url: score += 3
+    if url.count('.') >= 4: score += 4
+
     if score >= 8: return "danger", score
     elif score >= 4: return "suspicious", score
     else: return "safe", score
 
 def extract_features(url):
     url = url.lower()
-    return [len(url), url.count('.'), 1 if '@' in url else 0, 0, 0, url.count('-'), 1 if url.startswith("https") else 0]
+    return [
+        len(url), url.count('.'), 
+        1 if '@' in url else 0,
+        1 if re.match(r'\d+\.\d+\.\d+\.\d+', url) else 0,
+        1 if any(w in url for w in ["login", "verify", "update", "bank"]) else 0,
+        url.count('-'), 1 if url.startswith("https") else 0
+    ]
 
+# -------- ROUTES --------
 @app.route("/", methods=['GET', 'POST'])
 def index():
     conn = sqlite3.connect("history.db")
@@ -53,10 +73,13 @@ def index():
 
     if request.method == "POST":
         url = request.form['url']
+        if not url.startswith(("http://", "https://")):
+            url = "http://" + url
+
         rule_result, rule_score = rule_based_check(url)
-        
-        # ML Prediction
         cleaned_url = re.sub(r'^https?://(www\.)?', '', url.lower())
+
+        # ML Prediction
         text_features = vector.transform([cleaned_url])
         custom_features = np.array(extract_features(url)).reshape(1, -1)
         combined_features = np.hstack([text_features.toarray(), custom_features])

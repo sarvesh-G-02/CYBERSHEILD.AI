@@ -1,41 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Cyber Shield</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER SHIELD | AI Security</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+<body data-risk-value="{{ risk or 0 }}">
 
-<body>
+    <div class="bg-layer">
+        <img src="{{ url_for('static', filename='bg2.jpg') }}" class="img-bg">
+        <canvas id="matrix-canvas"></canvas>
+    </div>
 
-<!-- PARTICLES -->
-<canvas id="particles"></canvas>
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="showTab('home')">SCANNER</div>
+        <div class="nav-item" onclick="showTab('history')">HISTORY</div>
+    </nav>
 
-<!-- RESULT STRIP -->
-{% if result %}
-<div class="result-strip {{ result_type }}">
-    {{ result }} | Risk: {{ risk }}%
-</div>
-{% endif %}
+    <div id="tip-modal" class="modal-overlay active">
+        <div class="modal-content cyber-glow">
+            <h3>🛡️ SECURITY BRIEFING</h3>
+            <div id="dynamic-tips"></div>
+            <button class="close-btn" onclick="hideModal('tip-modal')">PROCEED</button>
+        </div>
+    </div>
 
-<!-- MAIN CARD -->
-<div class="card">
-    <h1>🛡 Cyber Shield</h1>
+    <section id="home-section" class="tab-view active">
+        <h1 class="logo-text">CYBER SHIELD</h1>
+        <form method="POST" class="scan-area">
+            <div class="input-box {{ result_type }}">
+                <input type="text" name="url" id="url-field" placeholder="Enter URL to analyze..." required value="{{ request.form['url'] if request.form else '' }}">
+                <i class="fas fa-times-circle" onclick="document.getElementById('url-field').value=''"></i>
+            </div>
+            <button type="submit" class="glow-button">START ANALYSIS</button>
+        </form>
+    </section>
 
-    <form method="POST">
-        <input type="text" name="url" placeholder="Enter URL..." required>
-        <button type="submit">Scan</button>
-    </form>
+    <section id="history-section" class="tab-view">
+        <div class="glass-table">
+            <h2>RECENT LOGS</h2>
+            <table>
+                {% for item in history %}
+                <tr>
+                    <td>{{ item[0] }}</td>
+                    <td><span class="tag {{ item[2] }}">{{ item[1] }}</span></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </section>
 
-    {% if risk is defined %}
-    <div class="meter">
-        <div class="circle" style="--value: {{ risk }}"></div>
-        <p>{{ risk }}% Risk</p>
+    {% if result %}
+    <div id="result-modal" class="modal-overlay active">
+        <div class="modal-content result-card {{ result_type }} cyber-glow">
+            <i class="fas fa-times exit-icon" onclick="hideModal('result-modal')"></i>
+            <h2 class="status-title">{{ result_type|upper }} DETECTED</h2>
+            
+            <div class="meter-box">
+                <div class="bar-bg"><div id="risk-fill" class="bar-fill"></div></div>
+                <div class="risk-label">{{ risk }}% Threat Level</div>
+            </div>
+
+            <p class="res-msg">{{ result }}</p>
+            <div class="advice-box">
+                <strong>ADVICE:</strong> 
+                {% if result_type == 'danger' %} Do not click any buttons on that site.
+                {% elif result_type == 'suspicious' %} Look for subtle misspellings in the URL.
+                {% else %} Proceed with normal caution. {% endif %}
+            </div>
+        </div>
     </div>
     {% endif %}
-</div>
 
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+    <footer class="dev-info">
+        <p>POWERED BY AI</p>
+        <div class="pfp-wrap">
+            <img src="{{ url_for('static', filename='image_5abffd.png') }}" alt="Dev">
+        </div>
+        <h2 class="name">SARVESH G</h2>
+    </footer>
 
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
