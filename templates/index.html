@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cyber Shield</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<!-- PARTICLES -->
+<canvas id="particles"></canvas>
+
+<!-- RESULT STRIP -->
+{% if result %}
+<div class="result-strip {{ result_type }}">
+    {{ result }} | Risk: {{ risk }}%
+</div>
+{% endif %}
+
+<!-- MAIN CARD -->
+<div class="card">
+    <h1>🛡 Cyber Shield</h1>
+
+    <form method="POST">
+        <input type="text" name="url" placeholder="Enter URL..." required>
+        <button type="submit">Scan</button>
+    </form>
+
+    {% if risk is defined %}
+    <div class="meter">
+        <div class="circle" style="--value: {{ risk }}"></div>
+        <p>{{ risk }}% Risk</p>
+    </div>
+    {% endif %}
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>

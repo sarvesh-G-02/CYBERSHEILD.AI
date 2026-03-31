@@ -1,0 +1,90 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: black;
+    color: white;
+    overflow: hidden;
+}
+
+/* PARTICLE BG */
+#particles {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+/* RESULT STRIP */
+.result-strip {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    animation: slideDown 0.5s ease;
+}
+
+/* COLORS */
+.danger {
+    background: red;
+}
+
+.suspicious {
+    background: orange;
+}
+
+.safe {
+    background: green;
+}
+
+/* ANIMATION */
+@keyframes slideDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+}
+
+/* CARD */
+.card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255,255,255,0.05);
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+/* INPUT */
+input {
+    padding: 12px;
+    width: 250px;
+    border-radius: 6px;
+    border: none;
+}
+
+/* BUTTON */
+button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: cyan;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* METER */
+.meter {
+    margin-top: 20px;
+}
+
+.circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: conic-gradient(cyan calc(var(--value) * 1%), #222 0);
+    margin: auto;
+}

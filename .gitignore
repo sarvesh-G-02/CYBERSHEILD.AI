@@ -1,0 +1,5 @@
+__pycache__/
+*.ipynb
+history.db
+.env
+phishing_site_urls.csv
